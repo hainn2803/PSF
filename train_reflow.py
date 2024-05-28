@@ -364,11 +364,13 @@ def train(gpu, opt, output_dir, noises_init):
             if opt.distribution_type == 'multi' or (opt.distribution_type is None and gpu is not None):
                 x0 = x0.cuda(gpu)
                 x1 = x1.cuda(gpu)
+	        x=[x0,x1]
                 noises_batch = noises_batch.cuda(gpu)
             elif opt.distribution_type == 'single':
+                x=[x0,x1]
                 x = x.cuda()
                 noises_batch = noises_batch.cuda()
-            x = [x0, x1]
+
             loss = model.get_loss_iter(x, noises_batch).mean()
 
             optimizer.zero_grad()
