@@ -10,5 +10,5 @@ python3 sample_flow.py --model "$model_path" \
                       --dataroot "$dataroot" \
                       --workers "$workers" \
                       --niter "$it" \
-		      --bs "$batch_size" \
-                      --distribution_type $dist
+		              --bs "$batch_size" \
+                      --distribution_type "$dist"
