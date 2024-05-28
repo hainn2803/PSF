@@ -2,6 +2,7 @@ import torch.multiprocessing as mp
 import torch.nn as nn
 import torch.optim as optim
 import torch.utils.data
+import torch
 
 import argparse
 from torch.distributions import Normal
@@ -11,7 +12,6 @@ from utils.visualize import *
 from model.pvcnn_generation import PVCNN2Base
 import torch.distributed as dist
 from datasets.shapenet_data_pc import ShapeNet15kPointClouds
-
 
 class Flowmodel:
     def __init__(self, opt):
@@ -304,6 +304,7 @@ def train(gpu, opt, output_dir, noises_init):
     model = Model(opt, betas, opt.loss_type, opt.model_mean_type, opt.model_var_type)
 
     if opt.distribution_type == 'multi':  # Multiple processes, single GPU per process
+        # Purpose: Uses DistributedDataParallel to parallelize the model across multiple processes, each using a single GPU.
         def _transform_(m):
             return nn.parallel.DistributedDataParallel(
                 m, device_ids=[gpu], output_device=gpu)
@@ -314,12 +315,14 @@ def train(gpu, opt, output_dir, noises_init):
 
 
     elif opt.distribution_type == 'single':
+        # Purpose: Uses DataParallel to parallelize the model across multiple GPUs within a single process.
         def _transform_(m):
             return nn.parallel.DataParallel(m)
         model = model.cuda()
         model.multi_gpu_wrapper(_transform_)
 
     elif gpu is not None:
+        # Purpose: Runs the model on a single specified GPU.
         torch.cuda.set_device(gpu)
         model = model.cuda(gpu)
     else:
@@ -338,7 +341,7 @@ def train(gpu, opt, output_dir, noises_init):
         #optimizer.load_state_dict(ckpt['optimizer_state'])
 
     if opt.model != '':
-        start_epoch = 0#torch.load(opt.model)['epoch'] + 1
+        start_epoch = torch.load(opt.model)['epoch'] + 1
     else:
         start_epoch = 0
 
@@ -356,10 +359,9 @@ def train(gpu, opt, output_dir, noises_init):
 
         for i, data in enumerate(dataloader):
             
-            x = data['train_points'].transpose(1,2)
+            x = data['train_points'].transpose(1,2) # shape == (num_samples, 3, 2048)
             
-            noises_batch = noises_init[data['idx']].transpose(1,2)
-
+            noises_batch = noises_init[data['idx']].transpose(1,2) # shape == (num_samples, 3, 2048)
 
             if opt.distribution_type == 'multi' or (opt.distribution_type is None and gpu is not None):
                 x = x.cuda(gpu)
@@ -449,9 +451,15 @@ def train(gpu, opt, output_dir, noises_init):
                 model.load_state_dict(
                     torch.load('%s/epoch_%d.pth' % (output_dir, epoch), map_location=map_location)['model_state'])
 
-    dist.destroy_process_group()
+    n_gpus = torch.cuda.device_count()
+    if n_gpus >= 2:
+        dist.destroy_process_group()
 
 def main():
+    
+    n_gpus = torch.cuda.device_count()
+    print(f"Number of GPUs used: {n_gpus}")
+    
     opt = parse_args()
     if 1:
         opt.beta_start = 1e-5
@@ -478,11 +486,10 @@ def main():
         train(opt.gpu, opt, output_dir, noises_init)
 
 
-
 def parse_args():
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataroot', default='./ShapeNetCore.v2.PC15k/')
+    parser.add_argument('--dataroot', default='datasets/ShapeNetCore.v2.PC15k/')
     parser.add_argument('--category', default='car')
 
     parser.add_argument('--bs', type=int, default=96, help='input batch size')
@@ -521,7 +528,7 @@ def parse_args():
                         help='url used to set up distributed training')
     parser.add_argument('--dist_backend', default='nccl', type=str,
                         help='distributed backend')
-    parser.add_argument('--distribution_type', default='multi', choices=['multi', 'single', None],
+    parser.add_argument('--distribution_type', default=None, choices=['multi', 'single', None],
                         help='Use multi-processing distributed training to launch '
                              'N processes per node, which has N GPUs. This is the '
                              'fastest way to use PyTorch for either single node or '
@@ -532,10 +539,10 @@ def parse_args():
                         help='GPU id to use. None means using all available GPUs.')
 
     '''eval'''
-    parser.add_argument('--saveIter', default=100, help='unit: epoch')
-    parser.add_argument('--diagIter', default=100, help='unit: epoch')
-    parser.add_argument('--vizIter', default=100, help='unit: epoch')
-    parser.add_argument('--print_freq', default=50, help='unit: iter')
+    parser.add_argument('--saveIter', default=100, type=int, help='unit: epoch')
+    parser.add_argument('--diagIter', default=100, type=int, help='unit: epoch')
+    parser.add_argument('--vizIter', default=100, type=int, help='unit: epoch')
+    parser.add_argument('--print_freq', default=100, type=int, help='unit: iter')
 
     parser.add_argument('--manualSeed', default=42, type=int, help='random seed')
 
@@ -544,5 +551,16 @@ def parse_args():
 
     return opt
 
+def print_gpu_info():
+    if not torch.cuda.is_available():
+        print("No GPU available")
+    else:
+        num_gpus = torch.cuda.device_count()
+        print(f"Number of GPUs available: {num_gpus}")
+        for i in range(num_gpus):
+            print(f"GPU {i}: {torch.cuda.get_device_name(i)}")
+
+
 if __name__ == '__main__':
+    print_gpu_info()
     main()

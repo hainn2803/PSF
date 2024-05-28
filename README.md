@@ -13,16 +13,13 @@ Now we release code for training and inference. Some works are still in progress
 # Requirements:
 This code is largely build based on [PVD](https://github.com/alexzhou907/PVD).
 Make sure at least the following environments are installed (newer version may also works, we test in the below environments).
-
+`conda install pytorch==1.7.1 torchvision==0.8.2 torchaudio==0.7.2 cudatoolkit=11.0 -c pytorch`
 ```
 python==3.8
-pytorch==1.4.0
-torchvision==0.5.0
-cudatoolkit==10.1
 matplotlib==2.2.5
 tqdm==4.32.1
 open3d==0.9.0
-trimesh=3.7.12
+trimesh==3.7.12
 scipy==1.5.1
 ```
 

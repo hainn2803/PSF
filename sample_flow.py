@@ -474,6 +474,7 @@ def train(gpu, opt, output_dir, noises_init):
 
     set_seed(opt)
     logger = setup_logging(output_dir)
+    logger.info(f"Check if exist pretrained weight: {os.path.exists(opt.model)}")
     if opt.distribution_type == 'multi':
         should_diag = gpu==0
     else:
@@ -551,8 +552,8 @@ def train(gpu, opt, output_dir, noises_init):
 
     def new_x_chain(x, num_chain):
         return torch.randn(num_chain, *x.shape[1:], device=x.device)
-
-
+    
+    print(start_epoch, opt.niter)
 
     for epoch in range(start_epoch, opt.niter):
 
@@ -577,7 +578,6 @@ def train(gpu, opt, output_dir, noises_init):
                 noises_batch = noises_batch.cuda()
             break
 
-
         if 1:
             logger.info('Generation: eval')
 
@@ -600,7 +600,9 @@ def train(gpu, opt, output_dir, noises_init):
 
                 exit(0)
 
-    dist.destroy_process_group()
+    n_gpus = torch.cuda.device_count()
+    if n_gpus >= 2:
+        dist.destroy_process_group()
 
 def main():
     opt = parse_args()
@@ -638,7 +640,7 @@ def parse_args():
 
     parser.add_argument('--bs', type=int, default=16, help='input batch size')
     parser.add_argument('--workers', type=int, default=16, help='workers')
-    parser.add_argument('--niter', type=int, default=10000, help='number of epochs to train for')
+    parser.add_argument('--niter', type=int, default=20000, help='number of epochs to train for')
 
     parser.add_argument('--nc', default=3)
     parser.add_argument('--npoints', default=2048)
@@ -672,7 +674,7 @@ def parse_args():
                         help='url used to set up distributed training')
     parser.add_argument('--dist_backend', default='nccl', type=str,
                         help='distributed backend')
-    parser.add_argument('--distribution_type', default='multi', choices=['multi', 'single', None],
+    parser.add_argument('--distribution_type', default=None, choices=['multi', 'single', None],
                         help='Use multi-processing distributed training to launch '
                              'N processes per node, which has N GPUs. This is the '
                              'fastest way to use PyTorch for either single node or '
@@ -695,5 +697,16 @@ def parse_args():
 
     return opt
 
+def print_gpu_info():
+    if not torch.cuda.is_available():
+        print("No GPU available")
+    else:
+        num_gpus = torch.cuda.device_count()
+        print(f"Number of GPUs available: {num_gpus}")
+        for i in range(num_gpus):
+            print(f"GPU {i}: {torch.cuda.get_device_name(i)}")
+
+
 if __name__ == '__main__':
+    print_gpu_info()
     main()
