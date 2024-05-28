@@ -118,4 +118,5 @@ venv.bak/
 
 output/
 metrics/
-datasets/
+datasets/ShapeNetCore.v2.PC15k
+datasets/ShapeNetCore.v2.PC15k.zip
