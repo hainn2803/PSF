@@ -364,7 +364,8 @@ def train(gpu, opt, output_dir, noises_init):
                 x1 = x1.cuda(gpu)
                 noises_batch = noises_batch.cuda(gpu)
             elif opt.distribution_type == 'single':
-                x = x.cuda()
+                x0 = x0.cuda()
+                x1 = x1.cuda()
                 noises_batch = noises_batch.cuda()
             x = [x0, x1]
             loss = model.get_loss_iter(x, noises_batch).mean()
@@ -533,10 +534,10 @@ def parse_args():
                         help='GPU id to use. None means using all available GPUs.')
 
     '''eval'''
-    parser.add_argument('--saveIter', default=100, help='unit: epoch')
-    parser.add_argument('--diagIter', default=100, help='unit: epoch')
-    parser.add_argument('--vizIter', default=100, help='unit: epoch')
-    parser.add_argument('--print_freq', default=50, help='unit: iter')
+    parser.add_argument('--saveIter',type=int, default=100, help='unit: epoch')
+    parser.add_argument('--diagIter', type=int, default=100, help='unit: epoch')
+    parser.add_argument('--vizIter', type=int, default=100, help='unit: epoch')
+    parser.add_argument('--print_freq', type=int, default=100, help='unit: iter')
 
     parser.add_argument('--manualSeed', default=42, type=int, help='random seed')
 
