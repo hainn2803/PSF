@@ -155,7 +155,8 @@ class Model(nn.Module):
         data = [x0, x1]
         losses = self.flow.p_losses(
             denoise_fn=self._denoise, data_start=data, t=t, noise=noises)
-        return losses
+        print(losses)
+        return losses[0]
 
     def gen_samples(self, shape, device, noise_fn=torch.randn,
                     clip_denoised=True,
@@ -537,7 +538,7 @@ def parse_args():
     parser.add_argument('--saveIter',type=int, default=100, help='unit: epoch')
     parser.add_argument('--diagIter', type=int, default=100, help='unit: epoch')
     parser.add_argument('--vizIter', type=int, default=100, help='unit: epoch')
-    parser.add_argument('--print_freq', type=int, default=100, help='unit: iter')
+    parser.add_argument('--print_freq', type=int, default=10, help='unit: iter')
 
     parser.add_argument('--manualSeed', default=42, type=int, help='random seed')
 
