@@ -14,6 +14,8 @@ Now we release code for training and inference. Some works are still in progress
 This code is largely build based on [PVD](https://github.com/alexzhou907/PVD).
 Make sure at least the following environments are installed (newer version may also works, we test in the below environments).
 `conda install pytorch==1.7.1 torchvision==0.8.2 torchaudio==0.7.2 cudatoolkit=11.0 -c pytorch`
+`pip install torch==2.0.1+cu118 torchvision==0.15.2+cu118 --index-url https://download.pytorch.org/whl/cu118`
+`conda install pytorch==1.11.0 torchvision==0.12.0 torchaudio==0.11.0 cudatoolkit=11.3 -c pytorch`
 ```
 python==3.8
 matplotlib==2.2.5
