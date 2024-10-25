@@ -1,7 +1,7 @@
 pytorch==1.7.1
 torchvision==0.8.2 
 torchaudio==0.7.2 
-cudatoolkit=11.0
+cudatoolkit==11.0
 tqdm==4.32.1
 open3d==0.10.0
 trimesh==3.7.12
