@@ -363,7 +363,7 @@ class Model(nn.Module):
         super(Model, self).__init__()
         self.diffusion = GaussianDiffusion(betas, loss_type, model_mean_type, model_var_type, step = args.step)
 
-        self.model = PVCNN2(num_classes=args.nc, embed_dim=args.embed_dim, use_att=args.attention,
+        self.model = PVCNN2(num_classes=args.num_classes, embed_dim=args.embed_dim, use_att=args.attention,
                             dropout=args.dropout, extra_feature_channels=0)
 
     def prior_kl(self, x0):
@@ -629,12 +629,12 @@ def parse_args():
     parser.add_argument('--step', type=int, default=1000)
     parser.add_argument('--batch_size', type=int, default=50, help='input batch size')
     parser.add_argument('--workers', type=int, default=16, help='workers')
-    parser.add_argument('--niter', type=int, default=10000, help='number of epochs to train for')
+    parser.add_argument('--nEpochs', type=int, default=10000, help='number of epochs to train for')
 
     parser.add_argument('--generate',default=True)
     parser.add_argument('--eval_gen', default=True)
 
-    parser.add_argument('--nc', default=3)
+    parser.add_argument('--num_classes', default=3)
     parser.add_argument('--npoints', default=2048)
     '''model'''
     parser.add_argument('--beta_start', default=0.0001)
@@ -655,8 +655,7 @@ def parse_args():
 
     '''eval'''
 
-    parser.add_argument('--eval_path',
-                        default='')
+    parser.add_argument('--eval_path', default='')
 
     parser.add_argument('--manualSeed', default=42, type=int, help='random seed')
 

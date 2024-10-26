@@ -1,14 +1,14 @@
 dataroot="datasets/ShapeNetCore.v2.PC15k/"
 category="car"
-bs=128
+batch_size=128
 workers=16
-niter=10000
+nEpochs=10000
 model_type="distill"
 step=20
 python3 test_flow.py --category "$category" \
                     --dataroot "$dataroot" \
-                    --bs $bs \
+                    --batch_size $batch_size \
                     --workers $workers \
-                    --niter $niter \
+                    --nEpochs $nEpochs \
                     --model $model_type \
                     --step $step

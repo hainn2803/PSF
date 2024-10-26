@@ -1,16 +1,20 @@
 dataroot="datasets/ShapeNetCore.v2.PC15k/"
 category="car"
-bs=2
+batch_size=2
 workers=2
-niter=5
+nepoch=5
 dist="single"
-save_iter=500
-viz_iter=500
+save_epoch=1
+viz_epoch=1
+diag_epoch=1
+print_freq=1000
 python3 train_flow.py --category "$category" \
                     --dataroot "$dataroot" \
-                    --bs $bs \
+                    --batch_size $batch_size \
                     --workers $workers \
-                    --niter $niter \
+                    --nEpochs $nepoch \
                     --distribution_type $dist \
-                    --saveIter $save_iter \
-                    --vizIter $viz_iter
+                    --saveEpoch $save_epoch \
+                    --diagEpoch $diag_epoch \
+                    --vizEpoch $viz_epoch \
+                    --printFreqIter $print_freq

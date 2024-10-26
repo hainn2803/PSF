@@ -3,12 +3,12 @@ dataroot="datasets/ShapeNetCore.v2.PC15k/"
 category="car"
 workers=16
 dist="single"
-it=20001
+epoch=20001
 batch_size=128
 python3 sample_flow.py --model "$model_path" \
               	      --category "$category" \
                       --dataroot "$dataroot" \
                       --workers "$workers" \
-                      --niter "$it" \
-		              --bs "$batch_size" \
+                      --nEpochs "$epoch" \
+		              --batch_size "$batch_size" \
                       --distribution_type "$dist"

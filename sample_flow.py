@@ -55,11 +55,11 @@ class GaussianDiffusion:
         Extract some coefficients at specified timesteps,
         then reshape to [batch_size, 1, 1, 1, 1, ...] for broadcasting purposes.
         """
-        bs, = t.shape
-        assert x_shape[0] == bs
+        batch_size, = t.shape
+        assert x_shape[0] == batch_size
         out = torch.gather(a, 0, t)
-        assert out.shape == torch.Size([bs])
-        return torch.reshape(out, [bs] + ((len(x_shape) - 1) * [1]))
+        assert out.shape == torch.Size([batch_size])
+        return torch.reshape(out, [batch_size] + ((len(x_shape) - 1) * [1]))
 
 
 
@@ -331,7 +331,7 @@ class Model(nn.Module):
         super(Model, self).__init__()
         self.diffusion = GaussianDiffusion(betas, loss_type, model_mean_type, model_var_type)
 
-        self.model = PVCNN2(num_classes=args.nc, embed_dim=args.embed_dim, use_att=args.attention,
+        self.model = PVCNN2(num_classes=args.num_classes, embed_dim=args.embed_dim, use_att=args.attention,
                             dropout=args.dropout, extra_feature_channels=0)
 
     def prior_kl(self, x0):
@@ -458,11 +458,11 @@ def get_dataloader(opt, train_dataset, test_dataset=None):
         train_sampler = None
         test_sampler = None
 
-    train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=opt.bs,sampler=train_sampler,
+    train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=opt.batch_size,sampler=train_sampler,
                                                    shuffle=train_sampler is None, num_workers=int(opt.workers), drop_last=True)
 
     if test_dataset is not None:
-        test_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=opt.bs,sampler=test_sampler,
+        test_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=opt.batch_size,sampler=test_sampler,
                                                    shuffle=False, num_workers=int(opt.workers), drop_last=False)
     else:
         test_dataloader = None
@@ -491,12 +491,12 @@ def train(gpu, opt, output_dir, noises_init):
         dist.init_process_group(backend=opt.dist_backend, init_method=opt.dist_url,
                                 world_size=opt.world_size, rank=opt.rank)
 
-        opt.bs = int(opt.bs / opt.ngpus_per_node)
+        opt.batch_size = int(opt.batch_size / opt.ngpus_per_node)
         opt.workers = 0
 
-        opt.saveIter =  int(opt.saveIter / opt.ngpus_per_node)
-        opt.diagIter = int(opt.diagIter / opt.ngpus_per_node)
-        opt.vizIter = int(opt.vizIter / opt.ngpus_per_node)
+        opt.saveEpoch =  int(opt.saveEpoch / opt.ngpus_per_node)
+        opt.diagEpoch = int(opt.diagEpoch / opt.ngpus_per_node)
+        opt.vizEpoch = int(opt.vizEpoch / opt.ngpus_per_node)
 
 
     ''' data '''
@@ -553,9 +553,9 @@ def train(gpu, opt, output_dir, noises_init):
     def new_x_chain(x, num_chain):
         return torch.randn(num_chain, *x.shape[1:], device=x.device)
     
-    print(start_epoch, opt.niter)
+    print(start_epoch, opt.nEpochs)
 
-    for epoch in range(start_epoch, opt.niter):
+    for epoch in range(start_epoch, opt.nEpochs):
 
         if opt.distribution_type == 'multi':
             train_sampler.set_epoch(epoch)
@@ -618,7 +618,7 @@ def main():
 
     ''' workaround '''
     train_dataset, _ = get_dataset(opt.dataroot, opt.npoints, opt.category)
-    noises_init = torch.randn(len(train_dataset), opt.npoints, opt.nc)
+    noises_init = torch.randn(len(train_dataset), opt.npoints, opt.num_classes)
 
     if opt.dist_url == "env://" and opt.world_size == -1:
         opt.world_size = int(os.environ["WORLD_SIZE"])
@@ -638,11 +638,11 @@ def parse_args():
     parser.add_argument('--dataroot', default='./data/ShapeNetCore.v2.PC15k/')
     parser.add_argument('--category', default='chair')
 
-    parser.add_argument('--bs', type=int, default=16, help='input batch size')
+    parser.add_argument('--batch_size', type=int, default=16, help='input batch size')
     parser.add_argument('--workers', type=int, default=16, help='workers')
-    parser.add_argument('--niter', type=int, default=20000, help='number of epochs to train for')
+    parser.add_argument('--nEpochs', type=int, default=20000, help='number of epochs to train for')
 
-    parser.add_argument('--nc', default=3)
+    parser.add_argument('--num_classes', default=3)
     parser.add_argument('--npoints', default=2048)
     '''model'''
     parser.add_argument('--beta_start', default=0.0001)
@@ -685,10 +685,10 @@ def parse_args():
                         help='GPU id to use. None means using all available GPUs.')
 
     '''eval'''
-    parser.add_argument('--saveIter', default=500, help='unit: epoch')
-    parser.add_argument('--diagIter', default=500, help='unit: epoch')
-    parser.add_argument('--vizIter', default=500, help='unit: epoch')
-    parser.add_argument('--print_freq', default=50, help='unit: iter')
+    parser.add_argument('--saveEpoch', default=500, help='unit: epoch')
+    parser.add_argument('--diagEpoch', default=500, help='unit: epoch')
+    parser.add_argument('--vizEpoch', default=500, help='unit: epoch')
+    parser.add_argument('--printFreqIter', default=50, help='unit: iter')
 
     parser.add_argument('--manualSeed', default=42, type=int, help='random seed')
 

@@ -136,7 +136,7 @@ class Model(nn.Module):
         super(Model, self).__init__()
         self.flow = Flowmodel(args)
 
-        self.model = PVCNN2(num_classes=args.nc, embed_dim=args.embed_dim, use_att=args.attention,
+        self.model = PVCNN2(num_classes=args.num_classes, embed_dim=args.embed_dim, use_att=args.attention,
                             dropout=args.dropout, extra_feature_channels=0)
 
 
@@ -249,11 +249,11 @@ def get_dataloader(opt, train_dataset, test_dataset=None):
         train_sampler = None
         test_sampler = None
 
-    train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=opt.bs,sampler=train_sampler,
+    train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=opt.batch_size,sampler=train_sampler,
                                                    shuffle=train_sampler is None, num_workers=int(opt.workers), drop_last=True)
 
     if test_dataset is not None:
-        test_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=opt.bs,sampler=test_sampler,
+        test_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=opt.batch_size,sampler=test_sampler,
                                                    shuffle=False, num_workers=int(opt.workers), drop_last=False)
     else:
         test_dataloader = None
@@ -281,12 +281,12 @@ def train(gpu, opt, output_dir, noises_init):
         dist.init_process_group(backend=opt.dist_backend, init_method=opt.dist_url,
                                 world_size=opt.world_size, rank=opt.rank)
 
-        opt.bs = int(opt.bs / opt.ngpus_per_node)
+        opt.batch_size = int(opt.batch_size / opt.ngpus_per_node)
         opt.workers = 0
 
-        opt.saveIter =  int(opt.saveIter / opt.ngpus_per_node)
-        opt.diagIter = int(opt.diagIter / opt.ngpus_per_node)
-        opt.vizIter = int(opt.vizIter / opt.ngpus_per_node)
+        opt.saveEpoch =  int(opt.saveEpoch / opt.ngpus_per_node)
+        opt.diagEpoch = int(opt.diagEpoch / opt.ngpus_per_node)
+        opt.vizEpoch = int(opt.vizEpoch / opt.ngpus_per_node)
 
 
     ''' data '''
@@ -345,7 +345,7 @@ def train(gpu, opt, output_dir, noises_init):
 
 
 
-    for epoch in range(start_epoch, opt.niter):
+    for epoch in range(start_epoch, opt.nEpochs):
 
         if opt.distribution_type == 'multi':
             train_sampler.set_epoch(epoch)
@@ -381,16 +381,16 @@ def train(gpu, opt, output_dir, noises_init):
             optimizer.step()
 
 
-            if i % opt.print_freq == 0 and should_diag:
+            if i % opt.printFreqIter == 0 and should_diag:
 
                 logger.info('[{:>3d}/{:>3d}][{:>3d}/{:>3d}]    loss: {:>10.4f},    '
                             .format(
-                        epoch, opt.niter, i, len(dataloader),loss.item(),
+                        epoch, opt.nEpochs, i, len(dataloader),loss.item(),
                         ))
 
 
 
-        if (epoch + 1) % opt.vizIter == 0 and should_diag:
+        if (epoch + 1) % opt.vizEpoch == 0 and should_diag:
             logger.info('Generation: eval')
 
             model.eval()
@@ -408,7 +408,7 @@ def train(gpu, opt, output_dir, noises_init):
                              'eval_gen_range: [{:>10.4f}, {:>10.4f}]     '
                              'eval_gen_stats: [mean={:>10.4f}, std={:>10.4f}]      '
                     .format(
-                    epoch, opt.niter,
+                    epoch, opt.nEpochs,
                     *gen_eval_range, *gen_stats,
                 ))
 
@@ -431,7 +431,7 @@ def train(gpu, opt, output_dir, noises_init):
 
 
 
-        if (epoch + 1) % opt.saveIter == 0:
+        if (epoch + 1) % opt.saveEpoch == 0:
 
             if should_diag:
 
@@ -467,7 +467,7 @@ def main():
 
     ''' workaround '''
     train_dataset, _ = get_dataset(opt.dataroot, opt.npoints, opt.category)
-    noises_init = torch.randn(len(train_dataset), opt.npoints, opt.nc)
+    noises_init = torch.randn(len(train_dataset), opt.npoints, opt.num_classes)
 
     if opt.dist_url == "env://" and opt.world_size == -1:
         opt.world_size = int(os.environ["WORLD_SIZE"])
@@ -487,11 +487,11 @@ def parse_args():
     parser.add_argument('--dataroot', default='./data/ShapeNetCore.v2.PC15k/')
     parser.add_argument('--category', default='chair')
 
-    parser.add_argument('--bs', type=int, default=96, help='input batch size')
+    parser.add_argument('--batch_size', type=int, default=96, help='input batch size')
     parser.add_argument('--workers', type=int, default=16, help='workers')
-    parser.add_argument('--niter', type=int, default=10000, help='number of epochs to train for')
+    parser.add_argument('--nEpochs', type=int, default=10000, help='number of epochs to train for')
 
-    parser.add_argument('--nc', default=3)
+    parser.add_argument('--num_classes', default=3)
     parser.add_argument('--npoints', default=2048)
     '''model'''
     parser.add_argument('--beta_start', default=0.0001)
@@ -534,10 +534,10 @@ def parse_args():
                         help='GPU id to use. None means using all available GPUs.')
 
     '''eval'''
-    parser.add_argument('--saveIter', type=int, default=500, help='unit: epoch')
-    parser.add_argument('--diagIter', type=int, default=500, help='unit: epoch')
-    parser.add_argument('--vizIter', type=int, default=500, help='unit: epoch')
-    parser.add_argument('--print_freq', type=int, default=100, help='unit: iter')
+    parser.add_argument('--saveEpoch', type=int, default=500, help='unit: epoch')
+    parser.add_argument('--diagEpoch', type=int, default=500, help='unit: epoch')
+    parser.add_argument('--vizEpoch', type=int, default=500, help='unit: epoch')
+    parser.add_argument('--printFreqIter', type=int, default=100, help='unit: iter')
 
     parser.add_argument('--manualSeed', default=42, type=int, help='random seed')
 
