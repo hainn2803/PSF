@@ -1,7 +1,7 @@
 dataroot="datasets/ShapeNetCore.v2.PC15k/"
 category="car"
-bs=32
-workers=8
+bs=2
+workers=2
 niter=5
 dist="single"
 save_iter=500
