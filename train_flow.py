@@ -380,13 +380,21 @@ def train(gpu, opt, output_dir, noises_init):
 
             optimizer.step()
 
+            if should_diag:
 
-            if i % opt.printFreqIter == 0 and should_diag:
+                cac = False
+                if i < opt.printFreqIter and i + 1 == len(dataloader):
+                    cac = True
+                    
+                elif i > opt.printFreqIter and i % opt.printFreqIter == 0:
+                    cac = True
 
-                logger.info('[{:>3d}/{:>3d}][{:>3d}/{:>3d}]    loss: {:>10.4f},    '
-                             .format(
-                        epoch, opt.nEpochs, i, len(dataloader),loss.item()
-                        ))
+                if cac:
+
+                    logger.info('[{:>3d}/{:>3d}][{:>3d}/{:>3d}]    loss: {:>10.4f},    '
+                                .format(
+                            epoch, opt.nEpochs, i, len(dataloader),loss.item()
+                            ))
 
 
         

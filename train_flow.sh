@@ -1,13 +1,13 @@
 dataroot="datasets/ShapeNetCore.v2.PC15k/"
 category="car"
-batch_size=2
-workers=2
-nepoch=5
+batch_size=32
+workers=8
+nepoch=100
 dist="single"
-save_epoch=1
-viz_epoch=1
-diag_epoch=1
-print_freq=1000
+save_epoch=10
+viz_epoch=10
+diag_epoch=10
+print_freq=100
 python3 train_flow.py --category "$category" \
                     --dataroot "$dataroot" \
                     --batch_size $batch_size \

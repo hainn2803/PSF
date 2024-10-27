@@ -121,3 +121,4 @@ metrics/
 datasets/ShapeNetCore.v2.PC15k
 datasets/ShapeNetCore.v2.PC15k.zip
 DATASET.pth
+syn/
