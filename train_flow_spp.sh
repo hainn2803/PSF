@@ -1,3 +1,24 @@
+#!/bin/bash -e
+#SBATCH --job-name=PSF
+#SBATCH --output=/lustre/scratch/client/vinai/users/hainn14/PSF/spp_noti/train_flow.out
+#SBATCH --error=/lustre/scratch/client/vinai/users/hainn14/PSF/spp_noti/train_flow.err
+#SBATCH --nodes=1
+#SBATCH --gpus-per-node=4
+#SBATCH --mem-per-gpu=125G
+#SBATCH --cpus-per-gpu=32
+#SBATCH --partition=research
+#SBATCH --mail-type=all
+#SBATCH --mail-user=v.HaiNN14@vinai.io
+
+module purge
+module load python/miniconda3/miniconda3
+
+# Corrected line
+eval "$(conda shell.bash hook)"
+
+conda activate /lustre/scratch/client/vinai/users/hainn14/envs/PSF
+cd /lustre/scratch/client/vinai/users/hainn14/PSF
+
 dataroot="datasets/ShapeNetCore.v2.PC15k/"
 category="car"
 num_classes=1
