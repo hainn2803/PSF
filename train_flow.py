@@ -504,14 +504,14 @@ def parse_args():
     parser.add_argument('--workers', type=int, default=16, help='workers')
     parser.add_argument('--nEpochs', type=int, default=20000, help='number of epochs to train for, unit: epoch')
 
-    parser.add_argument('--num_classes', default=3)
-    parser.add_argument('--npoints', default=2048)
+    parser.add_argument('--num_classes', type=int, default=3)
+    parser.add_argument('--npoints', type=int, default=2048)
 
     '''model'''
-    parser.add_argument('--beta_start', default=0.0001)
-    parser.add_argument('--beta_end', default=0.02)
-    parser.add_argument('--schedule_type', default='linear')
-    parser.add_argument('--time_num', default=1000)
+    parser.add_argument('--beta_start', type=float, default=0.0001)
+    parser.add_argument('--beta_end', type=float, default=0.02)
+    parser.add_argument('--schedule_type', type=str, default='linear')
+    parser.add_argument('--time_num', type=int, default=1000)
 
     '''params'''
     parser.add_argument('--attention', default=True)
