@@ -5,7 +5,7 @@ num_classes=1
 batch_size=32
 workers=8
 nepoch=100
-dist="single"
+dist="multi"
 
 save_epoch=10
 viz_epoch=10
