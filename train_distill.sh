@@ -5,8 +5,8 @@ model_path="ckp_reflow_999.pth"
 category="car"
 batch_size=8
 workers=8
-nEpochs=10000
-dist="single"
+nEpochs=10
+dist="multi"
 
 save_epoch=1
 viz_epoch=1

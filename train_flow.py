@@ -506,13 +506,14 @@ def parse_args():
 
     parser.add_argument('--num_classes', default=3)
     parser.add_argument('--npoints', default=2048)
+
     '''model'''
     parser.add_argument('--beta_start', default=0.0001)
     parser.add_argument('--beta_end', default=0.02)
     parser.add_argument('--schedule_type', default='linear')
     parser.add_argument('--time_num', default=1000)
 
-    #params
+    '''params'''
     parser.add_argument('--attention', default=True)
     parser.add_argument('--dropout', default=0.1)
     parser.add_argument('--embed_dim', type=int, default=64)
