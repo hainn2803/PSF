@@ -1,3 +1,5 @@
+import torch
+
 import os
 
 from torch.utils.cpp_extension import load
